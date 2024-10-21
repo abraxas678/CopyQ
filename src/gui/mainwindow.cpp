@@ -1054,7 +1054,7 @@ void MainWindow::setScriptOverrides(const QVector<int> &overrides, int actionId)
 
 bool MainWindow::isScriptOverridden(int id) const
 {
-    return 
+    return
         // Assume everything is overridden until collectOverrides() finishes
         (m_actionCollectOverrides && m_actionCollectOverrides->isRunning() && m_overrides.isEmpty())
         || std::binary_search(m_overrides.begin(), m_overrides.end(), id);
@@ -1345,7 +1345,7 @@ void MainWindow::onSearchShowRequest(const QString &text)
 
     enterSearchMode();
 
-    if (!m_options.viMode || text != "/") {
+    if (m_options.navigationStyle != NavigationStyle::Vi || text != "/") {
         ui->searchBar->setText(text);
         ui->searchBar->end(false);
     }
@@ -2530,7 +2530,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (m_options.hideTabs && key == Qt::Key_Alt)
         setHideTabs(false);
 
-    if (m_options.viMode) {
+    if (m_options.navigationStyle == NavigationStyle::Vi) {
         if (modifiers == Qt::ControlModifier && key == Qt::Key_BracketLeft) {
             onEscape();
             return;
@@ -2554,6 +2554,18 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 event->accept();
                 return;
             }
+        }
+    }
+
+    if (m_options.navigationStyle == NavigationStyle::Emacs) {
+        if ((modifiers == Qt::ControlModifier && key == Qt::Key_G)
+            || (key == Qt::Key_Escape)) {
+            onEscape();
+            return;
+        }
+
+        if (browseMode() && c && handleEmacsKey(event, c)) {
+                return;
         }
     }
 
@@ -2702,10 +2714,9 @@ void MainWindow::loadSettings(QSettings &settings, AppConfig *appConfig)
     setAlwaysOnTop(this, alwaysOnTop);
     setAlwaysOnTop(m_commandDialog.data(), alwaysOnTop);
 
-    // Vi mode
-    m_options.viMode = appConfig->option<Config::vi>();
-    m_trayMenu->setViModeEnabled(m_options.viMode);
-    m_menu->setViModeEnabled(m_options.viMode);
+    m_options.navigationStyle = appConfig->option<Config::navigation_style>();
+    m_trayMenu->setNavigationStyle(m_options.navigationStyle);
+    m_menu->setNavigationStyle(m_options.navigationStyle);
 
     // Number search
     m_trayMenu->setNumberSearchEnabled(m_sharedData->numberSearch);

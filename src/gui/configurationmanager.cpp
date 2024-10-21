@@ -257,7 +257,7 @@ void ConfigurationManager::initOptions()
     bind<Config::move>(m_tabHistory->checkBoxMove);
     bind<Config::check_clipboard>(m_tabGeneral->checkBoxClip);
     bind<Config::confirm_exit>(m_tabGeneral->checkBoxConfirmExit);
-    bind<Config::vi>(m_tabGeneral->checkBoxViMode);
+    bind<Config::navigation_style>(m_tabGeneral->comboBoxNavigationStyle);
     bind<Config::save_filter_history>(m_tabGeneral->checkBoxSaveFilterHistory);
     bind<Config::autocompletion>(m_tabGeneral->checkBoxAutocompleteCommands);
     bind<Config::always_on_top>(m_tabGeneral->checkBoxAlwaysOnTop);
@@ -374,6 +374,11 @@ void ConfigurationManager::bind(const QString &optionKey, QLineEdit *obj, const 
 void ConfigurationManager::bind(const QString &optionKey, QComboBox *obj, int defaultValue)
 {
     m_options[optionKey] = Option(defaultValue, "currentIndex", obj);
+}
+
+void ConfigurationManager::bind(const QString &optionKey, QComboBox *obj, NavigationStyle defaultValue)
+{
+    m_options[optionKey] = Option(static_cast<int>(defaultValue), "currentIndex", obj);
 }
 
 void ConfigurationManager::bind(const QString &optionKey, const QVariant &defaultValue, const char *description)

@@ -1378,10 +1378,14 @@ void ClipboardBrowser::keyPressEvent(QKeyEvent *event)
         return;
 
     // translate keys for vi mode
-    if (m_sharedData->viMode && handleViKey(event, this)) {
+    if (m_sharedData->navigationStyle == NavigationStyle::Vi && handleViKey(event, this)) {
         d.updateIfNeeded();
         return;
     }
+
+    // translate keys for emacs mode
+    if (m_sharedData->navigationStyle == NavigationStyle::Emacs && handleEmacsKey(event, this))
+        return;
 
     const Qt::KeyboardModifiers mods = event->modifiers();
 
@@ -1389,6 +1393,16 @@ void ClipboardBrowser::keyPressEvent(QKeyEvent *event)
         return; // Handled by filter completion popup.
 
     const int key = event->key();
+
+    // WORKAROUND: Avoid triggering search with Ctrl+Space toggle selection action.
+    if (mods.testFlag(Qt::ControlModifier) && key == Qt::Key_Space) {
+        const QModelIndex current = currentIndex();
+        if (!edit(current, AnyKeyPressed, event)) {
+            selectionModel()->select(current, selectionCommand(current, event));
+            event->accept();
+            return;
+        }
+    }
 
     // This fixes few issues with default navigation and item selections.
     switch (key) {
